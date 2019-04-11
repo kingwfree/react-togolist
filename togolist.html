@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        div > p{
+            margin-bottom: 20px;
+            line-height: 40px;
+            font-size: 20px;
+            background: #ccc;
+        }
+        ul{
+            background: #8effa0;
+        }
+        ul li p{
+            line-height: 20px;
+            font-size: 16px;
+        }
+        .list{
+            height:0;
+            transition: 1s;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+<div id="app"></div>
+<script src="./node_modules/react/umd/react.development.js"></script>
+<script src="./node_modules/babel-standalone/babel.js"></script>
+<script src="./node_modules/react-dom/umd/react-dom.development.js"></script>
+<script src="./src/static/js/data.js"></script>
+<script type="text/babel">
+    class List extends React.Component{
+        render(){
+            const {list} = this.props
+            
+            return (
+                <ul>
+                    {
+                        list.map((item,index)=>{
+                            return (
+                                <li key={index}>
+                                    <p>{item['name']}</p>
+                                    <p>{item['gender']}</p>
+                                    <p>{item['introduce']}</p>
+                                </li>  
+                            )
+                        })
+                    }
+                </ul>
+            )
+        }
+    }
+
+    class Container extends React.Component{
+        constructor(props){
+            super(props)
+            //构造函数里只执行一次
+            //父组件里的数据已经更新了，
+            //而子组件里的却没有变化
+            this.state={
+                flag:this.props.flag
+            }
+            //父组件更新了，子组件要用生命周期函数来获取
+            //父组件更新后的数据
+        }
+
+        shouldComponentUpdate(nextProps,nextState){
+            console.log(nextProps,nextState)
+            //nextProps里的值是父组件传过来的
+            if( this.state.flag !== nextProps.flag ){
+                this.setState({
+                    flag:nextProps.flag
+                })
+            }
+            //父组件传过来的this.state.flag 当前的nextState.flag
+            //if(this.state.flag != nextState.flag)this.togolist(nextState.flag)
+            //console.log(this.state.flag,nextState)
+            this.togolist(this.state.flag)
+            return true
+        }
+        componentDidMount(){
+            this.togolist(this.state.flag)
+        }
+        togolist=(flag)=>{
+            const ele = this._list
+            //console.log(ele)
+            if(flag)ele.style.height = ele.scrollHeight+'px'
+            else ele.style.height = '0px'
+        }
+
+        handleFlex=(index)=>{
+            //console.log(this.props.flag)
+            let flag = !this.state.flag
+            //flag = !flag
+            this.setState({
+                flag
+            })
+            //console.log(this)
+            //console.log(flag)
+            //更新父组件的数据
+            this.props.changeFn(index)
+            
+        }
+        render(){
+            //console.log(this.props)
+            const {name,list,index} = this.props
+            return (
+                <div>
+                    <p
+                        onClick={this.handleFlex.bind(this,index)}
+                    >
+                        {name}
+                    </p>
+                    {
+                        // this.state.flag && (
+                        //     <ul>
+                        //         {
+                        //             list.map((item,index)=>{
+                        //                 return (
+                        //                     <li key={index}>
+                        //                         <p>{item['name']}</p>
+                        //                         <p>{item['gender']}</p>
+                        //                         <p>{item['introduce']}</p>
+                        //                     </li>  
+                        //                 )
+                        //             })
+                        //         }
+                        //     </ul>
+                        // )
+                        <div
+                            className="list"
+                            ref={listItem=>this._list=listItem}
+                        >
+                            <List 
+                                list={list}
+                            />    
+                        </div>
+                    }
+                </div>
+            )
+        }
+    }
+    class App extends React.Component{
+        state={
+            flag:[true,false,false]
+        }
+        handleClick=()=>{
+            //测试 没什么软用
+            //console.log(this)
+        }
+        handleChange=(i)=>{
+            const flag = this.state.flag.map((item,index)=>{
+                if(index === i)return !this.state.flag[index]   //true
+                return false
+            })
+            this.setState({
+                flag
+            })
+            //console.log(flag)
+        }
+        render(){
+            //console.log(dataList);
+            const data = dataList
+            return (
+                <div onClick={this.handleClick}>
+                    {
+                        Object.keys(data).map((item,index)=>{
+                            const list = data[item];
+                            return (
+                                <Container
+                                    {...data[item]}
+                                    key={index}
+                                    index={index}
+                                    flag={this.state.flag[index]}
+                                    changeFn={this.handleChange}
+                                />
+                            )
+                        })
+                    }
+
+                </div>
+            )
+        }
+    }
+    ReactDOM.render(
+        <App/>,
+        document.querySelector("#app")
+    )
+</script>
+</body>
+</html>
